@@ -10,7 +10,8 @@ join.addEventListener('click', onJoinClick);
 pause.addEventListener('click', onPauseClick);
 
 var stream = null;
-var peer = new Peer({key: '3xmff0kggpb65hfr'});
+//var peer = new Peer({key: '3xmff0kggpb65hfr'});
+var peer = new Peer({host:'howler-api.herokuapp.com', secure:true, port:443, key: 'peerjs', debug: 3});
 
 peer.on('error', function(e){
 	console.log(e);
