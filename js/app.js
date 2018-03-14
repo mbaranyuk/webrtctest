@@ -3,38 +3,46 @@ var join =  document.getElementById('join');
 var user =  document.getElementById('userId');
 var input = document.getElementById('input');
 var audio = document.getElementById('audio');
-var pause = document.getElementById('pause');
+var load = document.getElementById('load');
 
 start.addEventListener('click', onStartClick);
 join.addEventListener('click', onJoinClick);
-pause.addEventListener('click', onPauseClick);
+load.addEventListener('click', onLoadClick);
 
 var stream = null;
 //var peer = new Peer({key: '3xmff0kggpb65hfr'});
 var peer = new Peer({host:'howler-api.herokuapp.com', secure:true, port:443, key: 'peerjs', debug: 3});
 
-peer.on('error', function(e){
-	console.log(e);
-});
-peer.on('close', function(){
-	console.log('peer closed')
-});
-peer.on('open', function(id) {
-	user.innerHTML = 'My ID: '+ id;
-	console.log('open stream');
-});
-peer.on('call', function(call) {
-  // Answer the call, providing our mediaStream
-  if (stream !== null) {
-  	call.answer(stream);
-  }
-  
-});
+function onLoadClick() {
+	audio.pause();
+	var file=document.createElement('input');
+    file.type="file";
+    file.style.display = 'none';
+    document.body.appendChild(file);
+
+    file.click();
+
+    file.onchange = function() {
+    	audio.src = URL.createObjectURL(this.files[0]);
+
+    	onStartClick();
+    };
+}
 
 function onStartClick() {
 	console.log('start click');
-	audio.play();
-	stream = audio.captureStream();
+	peer.on('open', function(id) {
+	  user.innerHTML = 'My ID: '+ id;
+	  console.log('open stream');
+
+	  stream = audio.captureStream();
+	  audio.play();
+	});
+
+	peer.on('call', function(call) {
+	  // Answer the call, providing our mediaStream
+	  call.answer(stream);
+	});
 }
 
 function onJoinClick() {
@@ -43,23 +51,11 @@ function onJoinClick() {
 		return;
 	}
 
-	var audioCtx = new AudioContext();
-	var dest = audioCtx.createMediaStreamDestination();
+	var call = peer.call(input.value,  null);
 
-	var call = peer.call(input.value,  dest.stream);
-	call.on('stream', function(s){
-		audio.srcObject = s;
-	    audio.play();
+	peer.on('stream', function(stream) {
+	  audio.src = URL.createObjectURL(stream);
+	  audio.play();
 	});
-}
 
-function onPauseClick() {
-	if (audio.paused) {
-        audio.play();
-        pause.textContent = "Pause";
-    }
-    else {
-        audio.pause();
-        pause.textContent = "Play";
-    }
 }
