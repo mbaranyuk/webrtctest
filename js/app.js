@@ -4,10 +4,12 @@ var user =  document.getElementById('userId');
 var input = document.getElementById('input');
 var audio = document.getElementById('audio');
 var load = document.getElementById('load');
+var pause = document.getElementById('pause');
 
 start.addEventListener('click', onStartClick);
 join.addEventListener('click', onJoinClick);
 load.addEventListener('click', onLoadClick);
+pause.addEventListener('click', onPauseClick);
 
 var stream = null;
 //var peer = new Peer({key: '3xmff0kggpb65hfr'});
@@ -31,6 +33,8 @@ function onLoadClick() {
 
 function onStartClick() {
 	console.log('start click');
+	audio.play();
+	stream = audio.captureStream();
 	peer.on('open', function(id) {
 	  user.innerHTML = 'My ID: '+ id;
 	  console.log('open stream');
@@ -51,11 +55,25 @@ function onJoinClick() {
 		return;
 	}
 
-	var call = peer.call(input.value,  null);
+	var audioCtx = new AudioContext();
+	var dest = audioCtx.createMediaStreamDestination();
+
+	var call = peer.call(input.value,  dest.stream);
 
 	peer.on('stream', function(stream) {
-	  audio.src = URL.createObjectURL(stream);
+	  audio.srcObject = stream;
 	  audio.play();
 	});
 
 }
+
+function onPauseClick() {
+	if (audio.paused) {
+        audio.play();
+        pause.textContent = "Pause";
+    }
+    else {
+        audio.pause();
+        pause.textContent = "Play";
+    }
+ }
